@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Name That Molecule!</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:18px;background:linear-gradient(135deg,#edf2ff,#f2faf7);font-family:system-ui,Arial;color:#17233b}
+main{width:min(100%,650px)}header{text-align:center;margin-bottom:20px}.tag{color:#4569d4;font-size:.75rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase}
+h1{font-size:clamp(2rem,7vw,3rem);margin:7px 0}.sub{color:#68758a;margin:0}
+.panel{background:white;border:1px solid #e3e9f1;border-radius:24px;padding:clamp(18px,4vw,30px);box-shadow:0 18px 55px #26395b18}
+.top,.bottom{display:flex;justify-content:space-between;align-items:center;gap:10px}.pill{border-radius:99px;padding:7px 12px;background:#eef2ff;color:#405cc0;font-size:.82rem;font-weight:750}.pts{background:#e8f7f1;color:#14765e}
+.progress{height:8px;background:#e9edf5;border-radius:20px;margin:14px 0 20px;overflow:hidden}.bar{height:100%;background:linear-gradient(90deg,#5277e6,#26a184);width:0}
+.stage{min-height:235px;border:1px solid #e4e9f1;border-radius:18px;background:#f7f9fd;padding:25px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;margin-bottom:17px}
+.stage small{color:#68758a;font-size:.75rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;margin-bottom:17px}
+.question{font-size:clamp(1.35rem,4vw,2rem);font-weight:800;line-height:1.3}.answer{font-size:clamp(1.2rem,4vw,1.65rem);font-weight:800;line-height:1.35;color:#18866c}
+.hint{color:#68758a;margin-top:17px;font-size:.9rem}button{border:0;border-radius:13px;padding:14px 16px;font:inherit;font-weight:800;cursor:pointer}.primary{background:#4569d4;color:white;width:100%}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.good{background:#e5f5ef;color:#126d56}.miss{background:#fff0f1;color:#a63848}.next{background:#17233b}
+.bottom{border-top:1px solid #e7ebf2;margin-top:20px;padding-top:16px;color:#68758a}.score{font-size:1.35rem;color:#18866c;font-weight:900}
+.hidden{display:none!important}.result{text-align:center;padding:20px 0}.trophy{font-size:3rem}.result h2{font-size:2rem}.final{font-size:3rem;color:#18866c;font-weight:900}.foot{text-align:center;color:#68758a;font-size:.78rem;margin-top:15px}
+</style></head><body><main><header><div class="tag">Organic Chemistry • Topic 5</div><h1>🧪 Name That Molecule!</h1><p class="sub">Alkenes • Alkynes • Enynes • E/Z naming</p></header>
+<section class="panel" aria-live="polite"><div id="game"><div class="top"><span class="pill" id="counter"></span><span class="pill pts" id="points"></span></div><div class="progress"><div class="bar" id="bar"></div></div>
+<div class="stage"><small id="label">Your question</small><div class="question" id="question"></div><div class="hint" id="hint">Think of your answer, then reveal it.</div></div>
+<div id="controls"><button class="primary" id="reveal">Reveal answer</button></div><div class="bottom"><span>Total score</span><span class="score" id="score">0</span></div></div>
+<div id="results" class="result hidden"><div class="trophy">🏆</div><h2>Game complete!</h2><p>You finished all 25 cards.</p><div class="final" id="final"></div><p id="note"></p><button class="primary" id="restart">Play again</button></div></section>
+<div class="foot">Play in your browser and share this HTML file with classmates.</div></main>
+<script>
+const cards=[
+["What is the ending for an alkene?","-ene",1],["What is the ending for an alkyne?","-yne",1],
+["What does the prefix pent- mean?","5 carbon atoms",1],["What does the prefix hex- mean?","6 carbon atoms",1],
+["What does the prefix but- mean?","4 carbon atoms",1],["What does the prefix prop- mean?","3 carbon atoms",1],
+["What does the prefix eth- mean?","2 carbon atoms",1],["What does the prefix meth- mean?","1 carbon atom",1],
+["What type of bond does an alkene contain?","A carbon–carbon double bond",2],["What type of bond does an alkyne contain?","A carbon–carbon triple bond",2],
+["What is an enyne?","A molecule containing both a double bond and a triple bond",2],["What does the prefix cyclo- indicate?","A ring-shaped carbon chain",2],
+["What does E mean in E/Z naming?","Higher-priority groups are on opposite sides",3],["What does Z mean in E/Z naming?","Higher-priority groups are on the same side",3],
+["Name CH₂=CH–CH₃.","Propene",3],["Name CH₃–CH=CH–CH₃.","But-2-ene (2-butene)",3],
+["Name CH≡C–CH₃.","Propyne",3],["How many carbon atoms are in heptyne?","7 carbon atoms",2],
+["Which has a triple bond: an alkene or an alkyne?","An alkyne",2],["Name CH₃–CH₂–CH=CH–CH₃.","Pent-2-ene (2-pentene)",3],
+["Name CH₃–CH₂–C≡C–CH₃.","Pent-2-yne (2-pentyne)",3],["What is the first step in naming an alkene?","Choose the longest chain containing the double bond",3],
+["When numbering an alkene, what should receive the lowest possible number?","The double bond",3],
+["What does a triple bond consist of?","One sigma bond and two pi bonds",2],
+["What does cis generally mean in alkene stereochemistry?","The relevant groups are on the same side",2]
+];
+let i=0,score=0,revealed=false,answered=false;const el=id=>document.getElementById(id);
+function render(){let [q,a,p]=cards[i];el("counter").textContent=`Card ${i+1} of ${cards.length}`;el("points").textContent=`${p} ${p===1?"point":"points"}`;el("bar").style.width=`${i/cards.length*100}%`;el("label").textContent="Your question";el("question").className="question";el("question").textContent=q;el("hint").textContent="Think of your answer, then reveal it.";el("controls").innerHTML='<button class="primary" id="reveal">Reveal answer</button>';el("reveal").onclick=show;el("score").textContent=score}
+function show(){if(revealed)return;revealed=true;el("label").textContent="Answer";el("question").className="answer";el("question").textContent=cards[i][1];el("hint").textContent="Did you get it right?";el("controls").innerHTML='<div class="actions"><button class="good" id="yes">✓ I got it!</button><button class="miss" id="no">↻ Not quite</button></div>';el("yes").onclick=()=>mark(true);el("no").onclick=()=>mark(false)}
+function mark(right){if(answered)return;answered=true;if(right){score+=cards[i][2];el("score").textContent=score}el("hint").textContent=right?`Nice! +${cards[i][2]} points.`:"No worries—keep going!";el("controls").innerHTML=`<button class="primary next" id="next">${i===cards.length-1?"See results":"Next card →"}</button>`;el("next").onclick=next}
+function next(){if(i===cards.length-1){el("game").classList.add("hidden");el("results").classList.remove("hidden");el("final").textContent=score+" points";el("note").textContent="You earned "+score+" out of 54 possible points.";el("bar").style.width="100%";return}i++;revealed=false;answered=false;render()}
+el("restart").onclick=()=>{i=0;score=0;revealed=false;answered=false;el("results").classList.add("hidden");el("game").classList.remove("hidden");render()};render();
+</script></body></html>
